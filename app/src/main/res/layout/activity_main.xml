@@ -24,39 +24,39 @@
         >
 
 
-        <TextView
-            android:id="@+id/textView00"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="2dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
-            android:layout_marginBottom="2dp"
-            android:height="32dp"
-            android:width="32dp"
-            android:text="@string/flag"
-            android:textSize="32sp"
-            android:textAlignment="center"
-            app:layout_column="0"
-            app:layout_row="0" />
-
-        <TextView
-            android:id="@+id/textView01"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="2dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
-            android:layout_marginBottom="2dp"
-            android:height="32dp"
-            android:width="32dp"
-            android:text="@string/mine"
-            android:textSize="32sp"
-            android:textAlignment="center"
-            app:layout_column="1"
-            app:layout_row="0" />
+<!--        <TextView-->
+<!--            android:id="@+id/textView00"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginStart="2dp"-->
+<!--            android:layout_marginTop="2dp"-->
+<!--            android:layout_marginEnd="2dp"-->
+<!--            android:layout_marginBottom="2dp"-->
+<!--            android:height="32dp"-->
+<!--            android:width="32dp"-->
+<!--            android:text="@string/flag"-->
+<!--            android:textSize="32sp"-->
+<!--            android:textAlignment="center"-->
+<!--            app:layout_column="0"-->
+<!--            app:layout_row="0" />-->
 
 <!--        <TextView-->
+<!--            android:id="@+id/textView01"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginStart="2dp"-->
+<!--            android:layout_marginTop="2dp"-->
+<!--            android:layout_marginEnd="2dp"-->
+<!--            android:layout_marginBottom="2dp"-->
+<!--            android:height="32dp"-->
+<!--            android:width="32dp"-->
+<!--            android:text="@string/mine"-->
+<!--            android:textSize="32sp"-->
+<!--            android:textAlignment="center"-->
+<!--            app:layout_column="1"-->
+<!--            app:layout_row="0" />-->
+
+        <!--        <TextView-->
 <!--            android:id="@+id/textView10"-->
 <!--            android:layout_width="wrap_content"-->
 <!--            android:layout_height="wrap_content"-->
@@ -89,5 +89,17 @@
 <!--            app:layout_row="1" />-->
 
     </androidx.gridlayout.widget.GridLayout>
+
+    <TextView
+        android:id="@+id/timerText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="52dp"
+        android:text="00:00"
+        android:textSize="32sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

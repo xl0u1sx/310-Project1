@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 //import android.view.LayoutInflater;
+import android.os.Handler;
 import android.view.View;
 import android.widget.TextView;
 
@@ -32,10 +33,45 @@ public class MainActivity extends AppCompatActivity {
     // save the TextViews of all cells in an array, so later on,
     // when a TextView is clicked, we know which cell it is
     private ArrayList<TextView> cell_tvs;
+    private TextView timerText;
 
     private int dpToPixel(int dp) {
         float density = Resources.getSystem().getDisplayMetrics().density;
         return Math.round(dp * density);
+    }
+
+    //for elapsed time
+    private String formatElapsed(long ms) {
+        long totalSeconds = ms / 1000;
+        long minutes = totalSeconds / 60;
+        long seconds = totalSeconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    private boolean timerRunning = false;
+    private long startTimeMs = 0L;
+    private final Handler timerHandler = new Handler();
+    private final Runnable timerTick = new Runnable() {
+        @Override public void run() {
+            if (!timerRunning) return;
+            long elapsed = System.currentTimeMillis() - startTimeMs;
+            timerText.setText(formatElapsed(elapsed));
+            // update ~4 times per second (smooth but cheap)
+            timerHandler.postDelayed(this, 250);
+        }
+    };
+
+    private void timerStart() {
+        if (timerRunning) return;
+        timerRunning = true;
+        startTimeMs = System.currentTimeMillis();
+        timerHandler.post(timerTick);
+    }
+
+    private void timerStop() {
+        if (!timerRunning) return;
+        timerRunning = false;
+        timerHandler.removeCallbacksAndMessages(null);
     }
 
     @Override
@@ -59,12 +95,16 @@ public class MainActivity extends AppCompatActivity {
         final int cellPx = dpToPixel(CELL_SIZE_DP);
         final int marginPx = dpToPixel(CELL_MARGIN_DP);
 
+        //initialize time
+        timerText = findViewById(R.id.timerText);
+        if (timerText != null) {
+            timerText.setText("00:00");
+        }
+
         for (int i=0; i<COLUMN_COUNT; i++) {
             for (int j=0; j<ROW_COUNT; j++) {
                 TextView tv = new TextView(this);
-
-                GridLayout.LayoutParams lp =
-                        new GridLayout.LayoutParams(GridLayout.spec(i), GridLayout.spec(j));
+                GridLayout.LayoutParams lp = new GridLayout.LayoutParams(GridLayout.spec(i), GridLayout.spec(j));
                 lp.width = cellPx;
                 lp.height = cellPx;
                 lp.setMargins(marginPx, marginPx, marginPx, marginPx);
@@ -76,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
                 tv.setTextColor(Color.GRAY);
                 tv.setOnClickListener(this::onClickTV);
                 tv.setOnLongClickListener(this::flagCells);
-
                 grid.addView(tv, lp);
                 cell_tvs.add(tv);
             }
@@ -140,8 +179,10 @@ public class MainActivity extends AppCompatActivity {
         int i = n/COLUMN_COUNT;
         int j = n%COLUMN_COUNT;
 
-        if(exposed[i][j]) return;
+        if(exposed[i][j] || flagged[i][j]) return;
         exposed[i][j] = true;
+
+        timerStart();
 
         if(minePlaced[i][j]){
             tv.setText("💣");
@@ -151,6 +192,8 @@ public class MainActivity extends AppCompatActivity {
             revealAllMines();
             //end the game and not allow further clicks
             disableBoard();
+            timerStop();
+            //redirect to end game page with time spent
             return;
         }
 
@@ -166,6 +209,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(ifWin()){
             disableBoard();
+            timerStop();
         }
 
 //        tv.setText(String.valueOf(i)+String.valueOf(j)); // display num in cell
