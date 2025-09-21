@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ResultActivity">
+
+    <TextView
+        android:id="@+id/timeText"
+        android:layout_width="256dp"
+        android:layout_height="22dp"
+        android:layout_marginTop="256dp"
+        android:text="Used 0 seconds."
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/resultText"
+        app:layout_constraintEnd_toEndOf="@+id/resultText"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/resultText"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5" />
+
+    <TextView
+        android:id="@+id/resultText"
+        android:layout_width="257dp"
+        android:layout_height="31dp"
+        android:layout_marginTop="16dp"
+        android:text="You won."
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="@+id/goodJobText"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/goodJobText"
+        app:layout_constraintTop_toBottomOf="@id/timeText" />
+
+    <TextView
+        android:id="@+id/goodJobText"
+        android:layout_width="257dp"
+        android:layout_height="27dp"
+        android:layout_marginTop="4dp"
+        android:text="Good job!"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/resultText" />
+
+    <Button
+        android:id="@+id/playAgainBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:text="Play again?"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/goodJobText" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

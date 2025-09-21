@@ -3,6 +3,7 @@ package com.example.gridlayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.gridlayout.widget.GridLayout;
 
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -48,16 +49,16 @@ public class MainActivity extends AppCompatActivity {
         return String.format("%02d:%02d", minutes, seconds);
     }
 
+    private long totalTime = 0L;
     private boolean timerRunning = false;
     private long startTimeMs = 0L;
     private final Handler timerHandler = new Handler();
     private final Runnable timerTick = new Runnable() {
         @Override public void run() {
             if (!timerRunning) return;
-            long elapsed = System.currentTimeMillis() - startTimeMs;
-            timerText.setText(formatElapsed(elapsed));
-            // update ~4 times per second (smooth but cheap)
-            timerHandler.postDelayed(this, 250);
+            totalTime = System.currentTimeMillis() - startTimeMs;
+            timerText.setText(formatElapsed(totalTime));
+            timerHandler.postDelayed(this, 100);
         }
     };
 
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         if (!timerRunning) return;
         timerRunning = false;
         timerHandler.removeCallbacksAndMessages(null);
+        totalTime = System.currentTimeMillis() - startTimeMs;
     }
 
     @Override
@@ -194,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
             disableBoard();
             timerStop();
             //redirect to end game page with time spent
+            redirectToResult(false);
             return;
         }
 
@@ -210,6 +213,7 @@ public class MainActivity extends AppCompatActivity {
         if(ifWin()){
             disableBoard();
             timerStop();
+            redirectToResult(true);
         }
 
 //        tv.setText(String.valueOf(i)+String.valueOf(j)); // display num in cell
@@ -315,6 +319,13 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return revealedCells == nonMineCells;
+    }
+
+    private void redirectToResult(boolean won) {
+        Intent i = new Intent(this, ResultActivity.class);
+        i.putExtra(ResultActivity.EXTRA_ELAPSED_MS, totalTime);
+        i.putExtra(ResultActivity.EXTRA_WON, won);
+        startActivity(i);
     }
 
 
