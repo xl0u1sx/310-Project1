@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -74,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
                 tv.setBackgroundColor(Color.GRAY);
                 tv.setTextColor(Color.GRAY);
                 tv.setOnClickListener(this::onClickTV);
+                tv.setOnLongClickListener(this::flagCells);
 
                 grid.addView(tv, lp);
                 cell_tvs.add(tv);
@@ -160,6 +162,12 @@ public class MainActivity extends AppCompatActivity {
             tv.setText("");
         }
 
+        revealEmptyCells(i,j);
+
+        if(ifWin()){
+            disableBoard();
+        }
+
 //        tv.setText(String.valueOf(i)+String.valueOf(j)); // display num in cell
 //        if (tv.getCurrentTextColor() == Color.GRAY) {
 //            tv.setTextColor(Color.GREEN);
@@ -186,10 +194,91 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public boolean flagCells(View view) {
+        TextView tv = (TextView) view;
+        int n = findIndexOfCellTextView(tv);
+        if (n < 0) return true;
+
+        int i = n / COLUMN_COUNT;
+        int j = n % COLUMN_COUNT;
+
+//        if (exposed[i][j]) return true;
+
+        flagged[i][j] = !flagged[i][j];
+        if (flagged[i][j]) {
+            tv.setText("🚩");
+//            tv.setTextColor(Color.RED);
+//            tv.setBackgroundColor(Color.GRAY);
+        } else {
+            tv.setText("");
+            tv.setTextColor(Color.GRAY);
+            tv.setBackgroundColor(Color.GRAY);
+        }
+        return true; // consume long click
+    }
+
+    // Reveal logic with BFS flood-fill from zero cells
+    private void revealEmptyCells(int si, int sj) {
+        ArrayDeque<int[]> q = new ArrayDeque<>();
+
+        //small lambda to reveal one cell
+        java.util.function.BiConsumer<Integer, Integer> show = (ri, rj) -> {
+            TextView cell = cell_tvs.get(ri * COLUMN_COUNT + rj);
+            cell.setBackgroundColor(Color.LTGRAY);
+            cell.setTextColor(Color.BLACK);
+            int c = displayedMineCount[ri][rj];
+            cell.setText(c > 0 ? String.valueOf(c) : "");
+        };
+
+        if (displayedMineCount[si][sj] > 0) {
+            exposed[si][sj] = true;
+            show.accept(si, sj);
+            return;
+        }
+
+        //flood-fill
+        q.add(new int[]{si, sj});
+        exposed[si][sj] = true;
+        show.accept(si, sj);
+
+        int[] d = {-1, 0, 1};
+        while (!q.isEmpty()) {
+            int[] cur = q.removeFirst();
+            int ci = cur[0], cj = cur[1];
+
+            for (int di : d) for (int dj : d) {
+                if (di == 0 && dj == 0) continue;
+                int ni = ci + di, nj = cj + dj;
+                if (ni < 0 || ni >= ROW_COUNT || nj < 0 || nj >= COLUMN_COUNT) continue;
+                if (exposed[ni][nj] || flagged[ni][nj] || minePlaced[ni][nj]) continue;
+
+                exposed[ni][nj] = true;
+                show.accept(ni, nj);
+
+                if (displayedMineCount[ni][nj] == 0) {
+                    q.add(new int[]{ni, nj});
+                }
+            }
+        }
+    }
+
+    private boolean ifWin() {
+        int nonMineCells = ROW_COUNT * COLUMN_COUNT - MINE_COUNT;
+        int revealedCells = 0;
+        for (int i = 0; i < ROW_COUNT; i++) {
+            for (int j = 0; j < COLUMN_COUNT; j++) {
+                if (!minePlaced[i][j] && exposed[i][j]) revealedCells++;
+            }
+        }
+        return revealedCells == nonMineCells;
+    }
+
+
     // disable further clicks after game over
     private void disableBoard() {
         for (TextView cell : cell_tvs) {
             cell.setOnClickListener(null);
+            cell.setOnLongClickListener(null);
         }
     }
 }
