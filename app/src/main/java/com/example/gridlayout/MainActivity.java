@@ -18,6 +18,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int COLUMN_COUNT = 10;
     private static final int ROW_COUNT = 10;
     private static final int MINE_COUNT = 5;
+    private static final int CELL_SIZE_DP = 32;
+    private static final int CELL_MARGIN_DP = 2;
+
 
     //store mine cells
     private boolean[][] minePlaced;
@@ -47,21 +50,30 @@ public class MainActivity extends AppCompatActivity {
 
         // Method (2): add four dynamically created cells
         GridLayout grid = (GridLayout) findViewById(R.id.gridLayout01);
+        grid.setRowCount(ROW_COUNT);
+        grid.setColumnCount(COLUMN_COUNT);
+        grid.setUseDefaultMargins(false);
+        grid.setAlignmentMode(GridLayout.ALIGN_BOUNDS);
+
+        final int cellPx = dpToPixel(CELL_SIZE_DP);
+        final int marginPx = dpToPixel(CELL_MARGIN_DP);
+
         for (int i=0; i<COLUMN_COUNT; i++) {
             for (int j=0; j<ROW_COUNT; j++) {
                 TextView tv = new TextView(this);
-                tv.setHeight( dpToPixel(32) );
-                tv.setWidth( dpToPixel(32) );
-                tv.setTextSize( 16 );//dpToPixel(32) );
-                tv.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
-                tv.setTextColor(Color.GRAY);
-                tv.setBackgroundColor(Color.GRAY);
-                tv.setOnClickListener(this::onClickTV);
 
-                GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
-                lp.setMargins(dpToPixel(2), dpToPixel(2), dpToPixel(2), dpToPixel(2));
-                lp.rowSpec = GridLayout.spec(i);
-                lp.columnSpec = GridLayout.spec(j);
+                GridLayout.LayoutParams lp =
+                        new GridLayout.LayoutParams(GridLayout.spec(i), GridLayout.spec(j));
+                lp.width = cellPx;
+                lp.height = cellPx;
+                lp.setMargins(marginPx, marginPx, marginPx, marginPx);
+
+                tv.setText("");
+                tv.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
+                tv.setTextSize(16);
+                tv.setBackgroundColor(Color.GRAY);
+                tv.setTextColor(Color.GRAY);
+                tv.setOnClickListener(this::onClickTV);
 
                 grid.addView(tv, lp);
                 cell_tvs.add(tv);
@@ -94,14 +106,15 @@ public class MainActivity extends AppCompatActivity {
             for(int j=0; j<COLUMN_COUNT; ++j){
                 if(minePlaced[i][j]){
                     displayedMineCount[i][j] = -1; //no mine count because this is where mine is
+                    continue;
                 }
                 int count = 0;
                 for(int k: d) for (int l: d){
                     if(k == 0 && l == 0) continue;
                     int ik = i+k;
                     int jl = j+l;
-                    if(ik < ROW_COUNT && ik >= 0 && jl < COLUMN_COUNT && jl >= 0 && minePlaced[ik][jl]){
-                        count++;
+                    if(ik < ROW_COUNT && ik >= 0 && jl < COLUMN_COUNT && jl >= 0){
+                        if(minePlaced[ik][jl]) count++;
                     }
                 }
                 displayedMineCount[i][j] = count;
@@ -120,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
     public void onClickTV(View view){
         TextView tv = (TextView) view;
         int n = findIndexOfCellTextView(tv);
+        if(n<0) return;
 
         int i = n/COLUMN_COUNT;
         int j = n%COLUMN_COUNT;
@@ -138,8 +152,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-//        tv.setBackgroundColor(Color.GRAY);
-//        tv.setTextColor(Color.BLACK);
+        tv.setBackgroundColor(Color.LTGRAY);
+        tv.setTextColor(Color.BLACK);
         if(displayedMineCount[i][j] >0) {
             tv.setText(String.valueOf(displayedMineCount[i][j]));
         } else {
