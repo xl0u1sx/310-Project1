@@ -35,6 +35,13 @@ public class MainActivity extends AppCompatActivity {
     // when a TextView is clicked, we know which cell it is
     private ArrayList<TextView> cell_tvs;
     private TextView timerText;
+    private TextView leftText;   // top-left: remaining mines (can go negative)
+    private TextView changeModeIcon;
+    private boolean flagging = false;
+    private int flagCount = 0;
+    private boolean gameOver = false;
+    private boolean gameOutcome = false;
+
 
     private int dpToPixel(int dp) {
         float density = Resources.getSystem().getDisplayMetrics().density;
@@ -76,10 +83,40 @@ public class MainActivity extends AppCompatActivity {
         totalTime = System.currentTimeMillis() - startTimeMs;
     }
 
+    private void timerUpdate() {
+        if (timerText == null) return;
+        long seconds = totalTime / 1000L;
+        timerText.setText("🕙 " + seconds);
+    }
+
+    private void counterUpdate() {
+        if (leftText == null) return;
+        int remaining = MINE_COUNT - flagCount; // can be negative
+        leftText.setText("🚩 " + remaining);
+    }
+
+    private void setMode(boolean mode) {
+        flagging = mode;
+        if (changeModeIcon != null) {
+            changeModeIcon.setText(flagging ? "🚩" : "⛏️");
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getSupportActionBar().setTitle("CS310                                          Louis Xie");
+
+        leftText = findViewById(R.id.leftText);
+        timerText       = findViewById(R.id.timerText);
+        changeModeIcon  = findViewById(R.id.changeModeIcon);
+
+        if (timerText != null)   timerText.setText("🕙 0");
+        if (changeModeIcon != null) {
+            changeModeIcon.setText("⛏️"); // default to dig
+            changeModeIcon.setOnClickListener(v -> setMode(!flagging));
+        }
 
         cell_tvs = new ArrayList<TextView>();
         minePlaced = new boolean[ROW_COUNT][COLUMN_COUNT];
@@ -99,9 +136,6 @@ public class MainActivity extends AppCompatActivity {
 
         //initialize time
         timerText = findViewById(R.id.timerText);
-        if (timerText != null) {
-            timerText.setText("00:00");
-        }
 
         for (int i=0; i<COLUMN_COUNT; i++) {
             for (int j=0; j<ROW_COUNT; j++) {
@@ -117,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                 tv.setBackgroundColor(Color.GRAY);
                 tv.setTextColor(Color.GRAY);
                 tv.setOnClickListener(this::onClickTV);
-                tv.setOnLongClickListener(this::flagCells);
+//                tv.setOnLongClickListener(this::flagCells);
                 grid.addView(tv, lp);
                 cell_tvs.add(tv);
             }
@@ -128,6 +162,10 @@ public class MainActivity extends AppCompatActivity {
         placeMine();
         nearbyMineCount();
 
+        flagCount = 0;
+        counterUpdate();
+        timerUpdate();
+        setMode(false);
     }
 
     private void placeMine(){
@@ -174,12 +212,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickTV(View view){
+        if (gameOver) {
+            redirectToResult(gameOutcome);
+            return;
+        }
+
         TextView tv = (TextView) view;
         int n = findIndexOfCellTextView(tv);
         if(n<0) return;
 
         int i = n/COLUMN_COUNT;
         int j = n%COLUMN_COUNT;
+
+        if (flagging) {
+            // toggle flag with a tap
+            toggleFlag(i, j);
+            return;
+        }
 
         if(exposed[i][j] || flagged[i][j]) return;
         exposed[i][j] = true;
@@ -193,10 +242,12 @@ public class MainActivity extends AppCompatActivity {
             //reveal all mines
             revealAllMines();
             //end the game and not allow further clicks
-            disableBoard();
+//            disableBoard();
             timerStop();
+            gameOver = true;
+            gameOutcome = false;
             //redirect to end game page with time spent
-            redirectToResult(false);
+//            redirectToResult(false);
             return;
         }
 
@@ -211,9 +262,11 @@ public class MainActivity extends AppCompatActivity {
         revealEmptyCells(i,j);
 
         if(ifWin()){
-            disableBoard();
+//            disableBoard();
             timerStop();
-            redirectToResult(true);
+//            redirectToResult(true);
+            gameOver = true;
+            gameOutcome = true;
         }
 
 //        tv.setText(String.valueOf(i)+String.valueOf(j)); // display num in cell
@@ -224,6 +277,30 @@ public class MainActivity extends AppCompatActivity {
 //            tv.setTextColor(Color.GRAY);
 //            tv.setBackgroundColor(Color.LTGRAY);
 //        }
+    }
+
+    private void toggleFlag(int i, int j) {
+        if (exposed[i][j]) return;
+
+        TextView tv = cell_tvs.get(i * COLUMN_COUNT + j);
+
+        if (flagged[i][j]) {
+            // remove flag
+            flagged[i][j] = false;
+            flagCount = Math.max(0, flagCount - 1); // count flags placed; allow negative remaining via display calc
+            tv.setText("");
+            tv.setTextColor(Color.GRAY);
+            tv.setBackgroundColor(Color.GRAY);
+        } else {
+            // place flag
+            flagged[i][j] = true;
+            flagCount += 1;
+            tv.setText("🚩");
+            // keep unrevealed background
+            tv.setTextColor(Color.RED);
+            tv.setBackgroundColor(Color.GRAY);
+        }
+        counterUpdate();
     }
 
     // reveal all mines (then call game over screen after anothe click)
@@ -254,6 +331,7 @@ public class MainActivity extends AppCompatActivity {
 
         flagged[i][j] = !flagged[i][j];
         if (flagged[i][j]) {
+            flagCount += 1;
             tv.setText("🚩");
 //            tv.setTextColor(Color.RED);
 //            tv.setBackgroundColor(Color.GRAY);
